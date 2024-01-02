@@ -25,7 +25,7 @@ def main():
     patterns = [directory + '/Client.txt']
     event_handler = FileModifiedHandler(patterns = patterns)
     observer = PollingObserver()
-    observer.schedule(event_handler, directory, recursive = True)
+    observer.schedule(event_handler, directory)
     observer.start()
     try:
         while True:
