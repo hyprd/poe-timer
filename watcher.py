@@ -1,12 +1,13 @@
 from tkinter.filedialog import askdirectory
 from watchdog.events import PatternMatchingEventHandler
-from watchdog.observers import Observer
+from watchdog.observers.polling import PollingObserver
 import time, os
 
 class FileModifiedHandler(PatternMatchingEventHandler):
     def on_modified(self, event):
         new_line = seek_last_line(self.patterns[0])
-        # print(new_line)
+        if "You have entered" in new_line:
+            print(new_line)
         return super().on_modified(event)
 
 def seek_last_line(client):
@@ -23,7 +24,7 @@ def main():
     directory = askdirectory(title = 'Path to client.txt')
     patterns = [directory + '/Client.txt']
     event_handler = FileModifiedHandler(patterns = patterns)
-    observer = Observer()
+    observer = PollingObserver()
     observer.schedule(event_handler, directory, recursive = True)
     observer.start()
     try:
