@@ -12,24 +12,37 @@ elapsed_time = 0
 window = tk.Tk()
 timeLabel = tk.Label(window, text="text")
 timeLabel.pack()
+t = 0
+halt_timer = False
 
 class FileModifiedHandler(PatternMatchingEventHandler):
     def on_modified(self, event):
-        global elapsed_time, start, timer_started
+        global elapsed_time, start, timer_started, halt_timer
         new_line = seek_last_line(self.patterns[0])
         if "You have entered" in new_line:
             if not timer_started:
+                halt_timer = False
                 print('Timer started')
-                timeLabel['text'] = '0'
-                #start = time.perf_counter()
+                tick()
+                start = time.perf_counter()
                 timer_started = True
+                
             elif timer_started:
                 print('Timer finished')
-                #elapsed_time = round(time.perf_counter() - start, 2)
+                elapsed_time = round(time.perf_counter() - start, 2)
                 print(elapsed_time)
                 timer_started = False
+                halt_timer = True
                 
         return super().on_modified(event)
+
+def tick():
+    global t
+    global halt_timer
+    t += 1
+    timeLabel['text'] = t
+    if not halt_timer:
+        timeLabel.after(1000, tick)
 
 def seek_last_line(client):
     with open(client, "rb") as file:
