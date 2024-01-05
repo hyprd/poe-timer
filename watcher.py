@@ -10,11 +10,10 @@ import time
 
 window = tk.Tk()
 window.attributes('-topmost', True)
-window.title("PoE Timer")
 window.overrideredirect(True)
 
-instance_label = tk.Label(window, text = "(current instance)", font="Helvetica", background='black', fg='white')
-time_label = tk.Label(window, text = "(timer)", font="Helvetica", background='black', fg='white')
+instance_label = tk.Label(window, text = "(current instance)",  font=("Helvetica", 16), background='black', fg='white')
+time_label = tk.Label(window, text = "(timer)", font=("Helvetica", 16), background='black', fg='white', width=10)
 
 instance_label.grid(column = 0, row = 0)
 time_label.grid(column = 1, row = 0)
@@ -27,9 +26,9 @@ stopwatch_time = 0
 
 def timer():
     global stopwatch_time
-    stopwatch_time += 1
-    time_label.configure(text = stopwatch_time)
-    time_label.after(1000, timer)
+    stopwatch_time += 0.1
+    time_label.configure(text = round(stopwatch_time, 1))
+    time_label.after(100, timer)
     
 class FileModifiedHandler(PatternMatchingEventHandler):
     def on_modified(self, event):
@@ -40,8 +39,9 @@ class FileModifiedHandler(PatternMatchingEventHandler):
         # last two lines will capture it properly.
         for i in range(2):    
             if "You have entered" in client_contents[i] and client_contents[i] != current_instance:
+                previous_instance = format_instance(current_instance)
                 current_instance = client_contents[i]
-                current_instance_formatted = client_contents[i].partition('entered ')[2].replace('.', '').strip()
+                current_instance_formatted =format_instance(client_contents[i])
                 stopwatch_time = 0
                 if not timer_started:
                     timer_started = True
@@ -50,11 +50,14 @@ class FileModifiedHandler(PatternMatchingEventHandler):
                 elif timer_started:
                     timer_started = False
                     elapsed = str(datetime.now() - timestamp)
-                    logging.info("Entered %s for %s", current_instance_formatted, elapsed)
+                    logging.info("Entered %s for %s", previous_instance, elapsed)
                 instance_label['text'] = current_instance_formatted
             else:
                 continue
-               
+             
+def format_instance(instance):
+      return instance.partition('entered ')[2].replace('.', '').strip()
+  
 def main():
     global client
     directory = askdirectory(title = 'Path to client.txt')
