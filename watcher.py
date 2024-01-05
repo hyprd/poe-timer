@@ -3,64 +3,64 @@ from watchdog.events import PatternMatchingEventHandler
 from watchdog.observers.polling import PollingObserver
 
 import tkinter as tk
-import time, os
-
-timer_started = False
-start = 0
-elapsed_time = 0
+import time
+from collections import deque
 
 window = tk.Tk()
-timeLabel = tk.Label(window, text="text")
-timeLabel.pack()
-t = 0
-halt_timer = False
+window.attributes('-topmost', True)
 
+instance_label = tk.Label(window, text="(current instance)")
+instance_label.pack()
+
+time_label = tk.Label(window, text="(timer)")
+time_label.pack()   
+    
+client = ''
+current_instance = ''
+timer_started = False
+elapsed_time = 0
+start_time = 0
+stopwatch_time = 0
+
+def timer():
+    global stopwatch_time
+    stopwatch_time += 1
+    time_label.configure(text = stopwatch_time)
+    time_label.after(1000, timer)
+    
 class FileModifiedHandler(PatternMatchingEventHandler):
     def on_modified(self, event):
-        global elapsed_time, start, timer_started, halt_timer
-        new_line = seek_last_line(self.patterns[0])
-        if "You have entered" in new_line:
-            if not timer_started:
-                halt_timer = False
-                print('Timer started')
-                tick()
-                start = time.perf_counter()
-                timer_started = True
+        global client, current_instance, elapsed_time, start_time, timer_started, stopwatch_time
+        with open(client, encoding='utf-8') as file:
+            client_contents = deque(file, 2)
+        # The watchdog poller sometimes skips over the instance transition string. Deque for the 
+        # last two lines will capture it properly.
+        for i in range(2):    
+            if "You have entered" in client_contents[i] and client_contents[i] != current_instance:
+                current_instance = client_contents[i]
+                stopwatch_time = 0
+                if not timer_started:
+                    timer_started = True
+                    start_time = time.perf_counter()
+                    timer()
+                elif timer_started:
+                    timer_started = False
+                    elapsed_time = time.perf_counter() - start_time
                 
-            elif timer_started:
-                print('Timer finished')
-                elapsed_time = round(time.perf_counter() - start, 2)
-                print(elapsed_time)
-                timer_started = False
-                halt_timer = True
-                
-        return super().on_modified(event)
-
-def tick():
-    global t
-    global halt_timer
-    t += 1
-    timeLabel['text'] = t
-    if not halt_timer:
-        timeLabel.after(1000, tick)
-
-def seek_last_line(client):
-    with open(client, "rb") as file:
-        try:
-            file.seek(-2, os.SEEK_END)
-            while file.read(1) != b'\n':
-                file.seek(-2, os.SEEK_CUR)
-        except OSError:
-            file.seek(0)
-        return file.readline().decode()
-
+                instance_label['text'] = client_contents[i].partition('entered ')[2].replace('.', '')
+            else:
+                continue
+               
 def main():
+    global client
     directory = askdirectory(title = 'Path to client.txt')
     patterns = [directory + '/Client.txt']
+    client = patterns[0]
     event_handler = FileModifiedHandler(patterns = patterns)
     observer = PollingObserver()
     observer.schedule(event_handler, directory)
     observer.start()
+    
     window.mainloop()
     try:
         while True:
@@ -70,3 +70,4 @@ def main():
     observer.join()
 if __name__ == '__main__':
     main()
+    
