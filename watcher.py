@@ -13,8 +13,8 @@ window.attributes('-topmost', True)
 window.title("PoE Timer")
 window.overrideredirect(True)
 
-instance_label = tk.Label(window, text = "(current instance)", font="Helvetica")
-time_label = tk.Label(window, text = "(timer)", font="Helvetica")
+instance_label = tk.Label(window, text = "(current instance)", font="Helvetica", background='black', fg='white')
+time_label = tk.Label(window, text = "(timer)", font="Helvetica", background='black', fg='white')
 
 instance_label.grid(column = 0, row = 0)
 time_label.grid(column = 1, row = 0)
