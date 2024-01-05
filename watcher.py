@@ -10,13 +10,15 @@ import time
 
 window = tk.Tk()
 window.attributes('-topmost', True)
+window.title("PoE Timer")
+window.overrideredirect(True)
 
-instance_label = tk.Label(window, text="(current instance)")
-instance_label.pack()
+instance_label = tk.Label(window, text = "(current instance)", font="Helvetica")
+time_label = tk.Label(window, text = "(timer)", font="Helvetica")
 
-time_label = tk.Label(window, text="(timer)")
-time_label.pack()   
-    
+instance_label.grid(column = 0, row = 0)
+time_label.grid(column = 1, row = 0)
+
 client = ''
 current_instance = ''
 timestamp = ''
@@ -62,7 +64,7 @@ def main():
     observer = PollingObserver()
     observer.schedule(event_handler, directory)
     observer.start()
-    logging.basicConfig(filename = 'times.log', filemode = 'a', datefmt = '%H:%M:%S', format='[%(asctime)s] %(message)s', level = logging.INFO)
+    logging.basicConfig(filename = 'times.log', filemode = 'a', datefmt = '%H:%M:%S', format = '[%(asctime)s] %(message)s', level = logging.INFO)
     window.mainloop()
     try:
         while True:
